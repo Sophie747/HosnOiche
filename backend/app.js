@@ -33,4 +33,50 @@ app.use(function(err, req, res, next) {
     res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
 });
 
+const { Server } = require("socket.io");
+const SOCKET_IO_PORT = process.env.SOCKET_IO_PORT || 3002;
+const io = new Server(SOCKET_IO_PORT, {
+    cors: {
+        origin: 'http://localhost:5173',
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    },
+});
+
+const allowedEventRooms = new Set([
+    'game:create',
+    'game:end',
+    'round:create'
+]);
+
+function publishEvent(eventName, payload) {
+    io.to(eventName).emit(eventName, payload);
+}
+
+app.set('publishEvent', publishEvent);
+
+io.on('connection', (socket) => {
+    const requestedRooms = Array.isArray(socket.handshake.auth.interestedIn)
+        ? socket.handshake.auth.interestedIn
+        : [];
+
+    const rooms = requestedRooms
+        .map(room => String(room).trim().toLowerCase())
+        .filter(room => allowedEventRooms.has(room));
+
+    rooms.forEach(room => socket.join(room));
+
+    console.log(`Socket.IO client connected: ${socket.id}`);
+    console.log(`Subscribed to: ${rooms.join(', ') || '(nothing)'}`);
+
+    socket.on('disconnect', (reason) => {
+        console.log(`Socket.IO client disconnected: ${socket.id}. Reason: ${reason}`);
+    });
+
+    socket.on('error', (error) => {
+        console.error(`Socket.IO error for ${socket.id}:`, error.message);
+    });
+});
+
+console.log(`Socket.IO server listening on http://localhost:${SOCKET_IO_PORT}`);
+
 module.exports = app;

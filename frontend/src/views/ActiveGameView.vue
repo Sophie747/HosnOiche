@@ -1,11 +1,13 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue' 
+import { io } from 'socket.io-client'
 import { useGameStore } from '@/stores/gameStore'
 import { useRouter } from 'vue-router'
 
 const store = useGameStore()
 const router = useRouter()
 const currentRound = ref({})
+let socket = null
 
 onMounted(() => {
   if (!store.activeGame) {
@@ -13,6 +15,25 @@ onMounted(() => {
     return
   }
   resetInputs()
+
+  socket = io('http://localhost:3002', {
+    auth: { interestedIn: ['round:create', 'game:end'] }
+  })
+
+  socket.on('round:create', () => {
+    store.fetchInitialData()
+  })
+
+  socket.on('game:end', (data) => {
+    store.fetchInitialData()
+    router.push('/')
+  })
+})
+
+onBeforeUnmount(() => {
+  if (socket) {
+    socket.disconnect()
+  }
 })
 
 const resetInputs = () => {
@@ -27,8 +48,9 @@ const handleSubmitRound = () => {
   resetInputs()
 }
 
-const handleEndGame = () => {
-  store.endGame()
+const handleEndGame = async () => {
+  await store.endGame()
+  await store.fetchInitialData() 
   router.push('/')
 }
 </script>

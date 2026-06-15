@@ -1,11 +1,28 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, onBeforeUnmount } from 'vue'
+import { io } from 'socket.io-client'
 import { useGameStore } from '@/stores/gameStore'
 import { useRouter } from 'vue-router'
 import StatCard from '@/components/StatCard.vue'
 
 const store = useGameStore()
 const router = useRouter()
+let socket = null
+
+onMounted(() => {
+  socket = io('http://localhost:3002', {
+    auth: { interestedIn: ['game:create', 'game:end'] }
+  })
+
+  socket.on('game:create', () => store.fetchInitialData())
+  socket.on('game:end', () => store.fetchInitialData())
+})
+
+onBeforeUnmount(() => {
+  if (socket) {
+    socket.disconnect()
+  }
+})
 
 const playerStats = computed(() => {
   const stats = {}
@@ -181,7 +198,7 @@ const sortedLeaderboard = computed(() => {
           <h3 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Recent Games</h3>
           <ul class="space-y-3 max-h-96 overflow-y-auto pr-2">
             <li
-              v-for="(game, index) in [...store.pastGames].reverse()"
+              v-for="(game, index) in [...store.pastGames]"
               :key="index"
               class="bg-gray-50 p-3 rounded-md border border-gray-100 shadow-sm text-sm"
             >

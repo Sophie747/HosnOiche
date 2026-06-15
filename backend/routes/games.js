@@ -59,7 +59,9 @@ router.post('/games/active', async function(req, res, next) {
             "INSERT INTO games (status, players) VALUES ('active', $1) RETURNING id, players",
             [JSON.stringify(req.body.players)]
         );
-        
+
+        req.app.get('publishEvent')('game:create');
+
         res.status(201).json({ id: result.rows[0].id, players: result.rows[0].players, rounds: [] });
     } catch (err) {
         next(err);
@@ -77,6 +79,8 @@ router.put('/games/active/rounds', async function(req, res, next) {
         const roundsRes = await pool.query("SELECT scores FROM rounds WHERE game_id = $1 ORDER BY id", [game.id]);
         const rounds = roundsRes.rows.map(r => r.scores);
 
+        req.app.get('publishEvent')('round:create');
+
         res.status(200).json({ id: game.id, players: game.players, rounds: rounds });
     } catch (err) {
         next(err);
@@ -86,6 +90,9 @@ router.put('/games/active/rounds', async function(req, res, next) {
 router.delete('/games/active', async function(req, res, next) {
     try {
         await pool.query("UPDATE games SET status = 'abandoned' WHERE status = 'active'");
+
+        req.app.get('publishEvent')('game:end');
+
         res.status(204).send(); 
     } catch (err) {
         next(err);
@@ -117,6 +124,9 @@ router.get('/games', async function(req, res, next) {
 router.post('/games', async function(req, res, next) {
     try {
         await pool.query("UPDATE games SET status = 'completed' WHERE status = 'active'");
+
+        req.app.get('publishEvent')('game:end');
+
         res.status(201).json(req.body);
     } catch (err) {
         next(err);

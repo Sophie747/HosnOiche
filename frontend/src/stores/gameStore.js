@@ -18,13 +18,15 @@ export const useGameStore = defineStore('game', {
 
         const pastRes = await axios.get(`${API_URL}/games`);
         this.pastGames = pastRes.data.games || [];
+      } catch (error) {
+        console.error("Error fetching base data:", error);
+      }
 
+      try {
         const activeRes = await axios.get(`${API_URL}/games/active`);
         this.activeGame = activeRes.data;
       } catch (error) {
-        if (error.response && error.response.status !== 404) {
-            console.error("Error fetching initial data:", error);
-        }
+        this.activeGame = null; 
       }
     },
 
@@ -50,7 +52,7 @@ export const useGameStore = defineStore('game', {
       try {
         if (!this.activeGame) return;
         const res = await axios.post(`${API_URL}/games`, this.activeGame);
-        this.pastGames.push(res.data);
+        this.pastGames.unshift(res.data);
         this.activeGame = null;
       } catch (error) {
         console.error("Error ending game:", error);
