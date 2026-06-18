@@ -1,21 +1,12 @@
-# Hosn Obi - Fullstack Project
-**Student:** Sophie Öttl
+# Hosn Obi - Real-Time Score Tracker
 
-## Setup & Run
-I have deployed a cloud PostgreSQL database for this project so you don't need to set up a local database! The tables and a few test players are already initialized.
+A full-stack web application for tracking scores in the traditional card game "Hosn Obi". Built with Vue 3, Node.js, Express, and PostgreSQL, featuring real-time synchronization across clients using Socket.io.
 
-### 1. Backend
-1. Open a terminal and navigate to the `backend` folder.
-2. Run `npm install`.
-3. Create a `.env` file in the `backend` folder and add this provided connection string:
-   `DATABASE_URL=postgresql://neondb_owner:npg_mDHJeNzEG97w@ep-tiny-term-asap7dr7.c-4.eu-central-1.aws.neon.tech/neondb?sslmode=require`
+## Tech Stack
+* **Frontend:** Vue 3 (Composition API), Pinia, Vue Router, Tailwind CSS
+* **Backend:** Node.js, Express.js, Socket.io
+* **Database:** PostgreSQL (utilizing relational tables and JSONB)
 
-   `SOCKET_IO_PORT=3002`
-   
-4. Start the backend with `npm run dev`.
-
-### 2. Frontend
-1. Open a second terminal and navigate to the `frontend` folder.
-2. Run `npm install`.
-3. Start the Vue development server with `npm run dev`.
-4. Open http://localhost:5173 in your browser.
+## Prerequisites
+* [Node.js](https://nodejs.org/) installed
+* A local or cloud [PostgreSQL](https://www.postgresql.org/) database
