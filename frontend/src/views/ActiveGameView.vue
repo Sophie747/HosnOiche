@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue' 
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { io } from 'socket.io-client'
 import { useGameStore } from '@/stores/gameStore'
 import { useRouter } from 'vue-router'
@@ -16,7 +16,7 @@ onMounted(() => {
   }
   resetInputs()
 
-  socket = io('http://localhost:3002', {
+  socket = io({
     auth: { interestedIn: ['round:create', 'game:end'] }
   })
 
@@ -50,7 +50,7 @@ const handleSubmitRound = () => {
 
 const handleEndGame = async () => {
   await store.endGame()
-  await store.fetchInitialData() 
+  await store.fetchInitialData()
   router.push('/')
 }
 </script>

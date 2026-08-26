@@ -10,7 +10,7 @@ const router = useRouter()
 let socket = null
 
 onMounted(() => {
-  socket = io('http://localhost:3002', {
+  socket = io({
     auth: { interestedIn: ['game:create', 'game:end'] }
   })
 

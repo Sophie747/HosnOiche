@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-const API_URL = 'http://localhost:3000/api'
+const API_URL = '/api'
 
 export const useGameStore = defineStore('game', {
   state: () => ({
@@ -26,7 +26,7 @@ export const useGameStore = defineStore('game', {
         const activeRes = await axios.get(`${API_URL}/games/active`);
         this.activeGame = activeRes.data;
       } catch (error) {
-        this.activeGame = null; 
+        this.activeGame = null;
       }
     },
 
