@@ -16,7 +16,7 @@ const handleAbandon = () => {
 <template>
   <header class="bg-green-800 text-white p-4 shadow-md">
     <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-      <h1 class="text-2xl font-bold tracking-wide">Hosn obi - Score Tracker</h1>
+      <h1 class="text-2xl font-bold tracking-wide">Hosn Oiche - Score Tracker</h1>
       <nav>
         <ul class="flex gap-6 font-semibold items-center text-sm md:text-base">
           <li>

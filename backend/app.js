@@ -10,7 +10,6 @@ var gamesRouter = require('./routes/games');
 
 var app = express();
 
-//app.use(cors()); 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -88,3 +87,10 @@ app.set('publishEvent', publishEvent);
 
 module.exports = app;
 module.exports.attachSocket = attachSocket;
+
+if (typeof(PhusionPassenger) !== 'undefined') {
+    const http = require('http');
+    const server = http.createServer(app);
+    attachSocket(server);
+    server.listen('passenger');
+}
