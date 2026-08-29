@@ -78,7 +78,7 @@ const handleEndGame = async () => {
               required
               min="0"
               max="31"
-              step="1"
+              step="0.5"
               placeholder="0"
               class="w-full border border-gray-300 rounded-md p-2 focus:ring-green-500 focus:border-green-500 outline-none"
             />
