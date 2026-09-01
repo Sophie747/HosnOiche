@@ -96,9 +96,9 @@ const handleEndGame = async () => {
 <template>
   <main
     v-if="store.activeGame"
-    class="flex-grow max-w-4xl mx-auto w-full p-4 my-6 grid gap-6 md:grid-cols-3"
+    class="flex-grow max-w-4xl mx-auto w-full p-4 my-6 grid gap-6 md:grid-cols-3 min-w-0"
   >
-    <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 md:col-span-1 h-fit">
+    <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 md:col-span-1 h-fit min-w-0">
       <h2 class="text-xl font-bold text-green-700 border-b-2 border-green-700 pb-2 mb-4">
         Round {{ store.activeGame.rounds.length + 1 }} Entry
       </h2>
@@ -109,18 +109,22 @@ const handleEndGame = async () => {
             <label :for="player" class="block text-sm font-medium text-gray-700 mb-1"
               >{{ player }}:</label
             >
-            <input
-              type="number"
-              inputmode="decimal"
-              :id="player"
-              v-model="currentRound[player]"
-              required
-              min="0"
-              max="31"
-              step="0.5"
-              placeholder="0"
-              class="w-full border border-gray-300 rounded-md p-2 focus:ring-green-500 focus:border-green-500 outline-none"
-            />
+              <div class="flex items-center gap-2 min-w-0 w-full">
+                  <input
+                  type="number"
+                  inputmode="decimal"
+                  :id="player"
+                  v-model="currentRound[player]"
+                  required
+                  min="0"
+                    max="31"
+                    step="0.5"
+                  placeholder="0"
+                  class="flex-1 min-w-0 border border-gray-300 rounded-md p-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                />
+                <button type="button" @click="currentRound[player] = 30.5" class="flex-shrink-0 px-3 py-2 rounded bg-green-50 hover:bg-green-100">🐦</button>
+                <button type="button" @click="currentRound[player] = 31" class="flex-shrink-0 px-3 py-2 rounded bg-green-50 hover:bg-green-100">👖</button>
+              </div>
           </div>
         </article>
 
@@ -133,20 +137,20 @@ const handleEndGame = async () => {
       </form>
     </section>
 
-    <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 md:col-span-2">
+    <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 md:col-span-2 min-w-0">
       <h2 class="text-xl font-bold text-green-700 border-b-2 border-green-700 pb-2 mb-4">
         Current Standings
       </h2>
 
-      <div class="overflow-auto max-h-[55vh]">
-        <table class="w-full text-left border-collapse min-w-full">
+      <div class="w-full overflow-x-auto max-h-[55vh]">
+        <table class="table-auto w-full text-left border-collapse min-w-max">
           <thead>
             <tr class="bg-green-50 text-green-800 border-b border-green-200">
               <th class="p-3 font-semibold sticky top-0 bg-green-50 z-10">Round</th>
               <th
                 v-for="player in store.activeGame.players"
                 :key="player"
-                class="p-3 font-semibold sticky top-0 bg-green-50 z-10 whitespace-nowrap"
+                class="p-3 font-semibold sticky top-0 bg-green-50 z-10"
               >
                 <span v-if="leaders.includes(player)" class="mr-1" title="Currently leading">👑</span
                 >{{ player }}
