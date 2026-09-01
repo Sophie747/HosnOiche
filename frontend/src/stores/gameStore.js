@@ -48,6 +48,15 @@ export const useGameStore = defineStore('game', {
       }
     },
 
+    async deleteRound(index) {
+      try {
+        const res = await axios.delete(`${API_URL}/games/active/rounds/${index}`);
+        this.activeGame = res.data;
+      } catch (error) {
+        console.error("Error deleting round:", error);
+      }
+    },
+
     async endGame() {
       try {
         if (!this.activeGame) return;

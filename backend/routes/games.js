@@ -119,6 +119,32 @@ router.put('/games/active/rounds', async function(req, res, next) {
     }
 });
 
+router.delete('/games/active/rounds/:index', async function(req, res, next) {
+    const index = Number(req.params.index);
+    if (!Number.isInteger(index) || index < 0) {
+        return res.status(400).json({ error: 'Invalid round index' });
+    }
+    try {
+        const gameRes = await pool.query("SELECT id, players FROM games WHERE status = 'active' LIMIT 1");
+        if (gameRes.rows.length === 0) return res.status(404).json({ error: 'No active game found' });
+        const game = gameRes.rows[0];
+
+        const idsRes = await pool.query("SELECT id FROM rounds WHERE game_id = $1 ORDER BY id", [game.id]);
+        if (index >= idsRes.rows.length) return res.status(404).json({ error: 'Round not found' });
+
+        await pool.query("DELETE FROM rounds WHERE id = $1", [idsRes.rows[index].id]);
+
+        const roundsRes = await pool.query("SELECT scores FROM rounds WHERE game_id = $1 ORDER BY id", [game.id]);
+        const rounds = roundsRes.rows.map(r => r.scores);
+
+        req.app.get('publishEvent')('round:delete');
+
+        res.status(200).json({ id: game.id, players: game.players, rounds: rounds });
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.delete('/games/active', async function(req, res, next) {
     try {
         await pool.query("UPDATE games SET status = 'abandoned' WHERE status = 'active'");

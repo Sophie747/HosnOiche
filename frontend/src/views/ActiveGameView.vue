@@ -17,10 +17,14 @@ onMounted(() => {
   resetInputs()
 
   socket = io({
-    auth: { interestedIn: ['round:create', 'game:end'] }
+    auth: { interestedIn: ['round:create', 'round:delete', 'game:end'] }
   })
 
   socket.on('round:create', () => {
+    store.fetchInitialData()
+  })
+
+  socket.on('round:delete', () => {
     store.fetchInitialData()
   })
 
@@ -39,7 +43,7 @@ onBeforeUnmount(() => {
 const resetInputs = () => {
   currentRound.value = {}
   store.activeGame.players.forEach((player) => {
-    currentRound.value[player] = 0
+    currentRound.value[player] = undefined
   })
 }
 
@@ -72,9 +76,19 @@ const leaders = computed(() => {
 
 const formatScore = (value) => (Number.isInteger(value) ? value : value.toFixed(1))
 
+const handleDeleteRound = (index) => {
+  if (!window.confirm(`Delete round ${index + 1}? This cannot be undone.`)) return
+  store.deleteRound(index)
+}
+
 const handleEndGame = async () => {
-  await store.endGame()
-  await store.fetchInitialData()
+  if (store.activeGame.rounds.length === 0) {
+    if (!window.confirm('There were no rounds played. Do you want to abandon this game?')) return
+    await store.abandonGame()
+  } else {
+    await store.endGame()
+    await store.fetchInitialData()
+  }
   router.push('/')
 }
 </script>
@@ -137,13 +151,14 @@ const handleEndGame = async () => {
                 <span v-if="leaders.includes(player)" class="mr-1" title="Currently leading">👑</span
                 >{{ player }}
               </th>
+              <th class="p-3 sticky top-0 bg-green-50 z-10"><span class="sr-only">Delete</span></th>
             </tr>
           </thead>
           <tbody class="text-gray-600">
             <tr v-if="store.activeGame.rounds.length === 0">
               <td
                 class="p-3 text-center text-gray-400 italic"
-                :colspan="store.activeGame.players.length + 1"
+                :colspan="store.activeGame.players.length + 2"
               >
                 No rounds played yet.
               </td>
@@ -157,6 +172,17 @@ const handleEndGame = async () => {
               <td v-for="player in store.activeGame.players" :key="player" class="p-3">
                 {{ round[player] }}
               </td>
+              <td class="p-3 text-right">
+                <button
+                  type="button"
+                  @click="handleDeleteRound(index)"
+                  :aria-label="`Delete round ${index + 1}`"
+                  :title="`Delete round ${index + 1}`"
+                  class="text-gray-300 hover:text-red-600 font-bold px-2 transition-colors"
+                >
+                  ✕
+                </button>
+              </td>
             </tr>
           </tbody>
           <tfoot>
@@ -169,6 +195,7 @@ const handleEndGame = async () => {
               >
                 {{ formatScore(totals[player]) }}
               </td>
+              <td class="p-3 sticky bottom-0 bg-green-50 z-10"></td>
             </tr>
           </tfoot>
         </table>

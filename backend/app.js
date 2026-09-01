@@ -54,7 +54,8 @@ let io = null;
 const allowedEventRooms = new Set([
     'game:create',
     'game:end',
-    'round:create'
+    'round:create',
+    'round:delete'
 ]);
 
 function attachSocket(server) {
