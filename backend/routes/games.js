@@ -1,10 +1,42 @@
 var express = require('express');
 var router = express.Router();
+const path = require('path');
+const fs = require('fs');
+
+// If DATABASE_URL is not set, attempt to load it from .env
+if (!process.env.DATABASE_URL) {
+    try {
+        require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
+        console.log('games.js: loaded .env fallback');
+    } catch (e) {
+        console.warn('games.js: dotenv fallback failed', e && e.message);
+    }
+}
 const { Pool } = require('pg');
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL
-});
+function buildPoolConfig() {
+    if (process.env.DATABASE_URL && typeof process.env.DATABASE_URL === 'string' && process.env.DATABASE_URL.trim() !== '') {
+        try {
+            const raw = process.env.DATABASE_URL.trim();
+            const parsed = new URL(raw);
+            const hostIsCompose = parsed.hostname === 'postgres';
+            const inContainer = fs.existsSync('/.dockerenv') || fs.existsSync('/.dockerinit');
+            if (hostIsCompose && !inContainer) {
+                parsed.hostname = 'localhost';
+                const newConn = parsed.toString();
+                console.log('games.js: rewrote DATABASE_URL host from "postgres" to "localhost" for host-run backend');
+                return { connectionString: newConn };
+            }
+        } catch (e) {
+            console.warn('games.js: failed to parse DATABASE_URL, using raw value');
+        }
+
+        return { connectionString: process.env.DATABASE_URL };
+    }
+}
+
+const poolConfig = buildPoolConfig();
+const pool = new Pool(poolConfig);
 
 /* =============================================================================
    PLAYERS API

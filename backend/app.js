@@ -1,6 +1,18 @@
-require('dotenv').config();
-var express = require('express');
 var path = require('path');
+const fs = require('fs');
+
+// Resolve Env-File
+const envPath = path.resolve(__dirname, '..', '.env');
+const dotenvResult = require('dotenv').config({ path: envPath });
+
+if (dotenvResult.error) {
+    console.warn('dotenv failed to load .env at', envPath, '-', dotenvResult.error.message);
+} else {
+    const masked = process.env.DATABASE_URL ? '[redacted]' : undefined;
+    console.log('dotenv loaded .env at', envPath, 'DATABASE_URL=', masked, 'DATABASE_HOST=', process.env.DATABASE_HOST || '(none)');
+}
+
+var express = require('express');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors'); 
