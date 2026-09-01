@@ -24,51 +24,50 @@ onBeforeUnmount(() => {
   }
 })
 
+const bestOf = (scores) => {
+  const max = Math.max(...Object.values(scores))
+  return Object.keys(scores).filter((p) => scores[p] === max)
+}
+
 const playerStats = computed(() => {
   const stats = {}
 
   store.pastGames.forEach((game) => {
+    if (game.rounds.length === 0) return
+
     const gameTotals = {}
     game.players.forEach((p) => (gameTotals[p] = 0))
 
     game.rounds.forEach((round) => {
+      const roundScores = {}
+
       game.players.forEach((p) => {
-        const score = round[p] || 0
+        const score = Number(round[p]) || 0
+        roundScores[p] = score
         gameTotals[p] += score
 
         if (!stats[p]) {
           stats[p] = {
             totalPoints: 0,
             roundsPlayed: 0,
+            roundsWon: 0,
             gamesPlayed: 0,
             wins: 0,
-            highestRound: -9999,
           }
         }
 
         stats[p].totalPoints += score
         stats[p].roundsPlayed += 1
-        if (score > stats[p].highestRound) {
-          stats[p].highestRound = score
-        }
       })
+
+      bestOf(roundScores).forEach((w) => (stats[w].roundsWon += 1))
     })
 
     game.players.forEach((p) => {
       if (stats[p]) stats[p].gamesPlayed += 1
     })
 
-    let maxScore = -9999
-    let winners = []
-    for (const p in gameTotals) {
-      if (gameTotals[p] > maxScore) {
-        maxScore = gameTotals[p]
-        winners = [p]
-      } else if (gameTotals[p] === maxScore) {
-        winners.push(p)
-      }
-    }
-    winners.forEach((w) => {
+    bestOf(gameTotals).forEach((w) => {
       if (stats[w]) stats[w].wins += 1
     })
   })
@@ -81,7 +80,9 @@ const playerStats = computed(() => {
       avgPerRound: data.roundsPlayed > 0 ? (data.totalPoints / data.roundsPlayed).toFixed(1) : 0,
       wins: data.wins,
       gamesPlayed: data.gamesPlayed,
-      highestRound: data.highestRound,
+      roundsWon: data.roundsWon,
+      roundWinRate:
+        data.roundsPlayed > 0 ? ((data.roundsWon / data.roundsPlayed) * 100).toFixed(0) : 0,
     }
   })
 })
@@ -93,8 +94,11 @@ const topAvg = computed(
   () => [...playerStats.value].sort((a, b) => b.avgPerRound - a.avgPerRound)[0]
 )
 const topWins = computed(() => [...playerStats.value].sort((a, b) => b.wins - a.wins)[0])
-const topRound = computed(
-  () => [...playerStats.value].sort((a, b) => b.highestRound - a.highestRound)[0]
+const topRoundWinRate = computed(
+  () =>
+    [...playerStats.value].sort(
+      (a, b) => b.roundWinRate - a.roundWinRate || b.roundsWon - a.roundsWon
+    )[0]
 )
 
 const sortedLeaderboard = computed(() => {
@@ -153,10 +157,10 @@ const sortedLeaderboard = computed(() => {
           theme="blue"
         />
         <StatCard
-          v-if="topRound"
-          title="Best Round 🔥"
-          :playerName="topRound.name"
-          :statValue="`${topRound.highestRound} pts`"
+          v-if="topRoundWinRate"
+          title="Round Win Rate 👑"
+          :playerName="topRoundWinRate.name"
+          :statValue="`${topRoundWinRate.roundWinRate}% (${topRoundWinRate.roundsWon} rounds)`"
           theme="purple"
         />
       </section>

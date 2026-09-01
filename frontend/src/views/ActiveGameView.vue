@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { io } from 'socket.io-client'
 import { useGameStore } from '@/stores/gameStore'
 import { useRouter } from 'vue-router'
@@ -48,6 +48,30 @@ const handleSubmitRound = () => {
   resetInputs()
 }
 
+const totals = computed(() => {
+  const sums = {}
+  if (!store.activeGame) return sums
+
+  store.activeGame.players.forEach((player) => {
+    sums[player] = 0
+  })
+  store.activeGame.rounds.forEach((round) => {
+    store.activeGame.players.forEach((player) => {
+      sums[player] += Number(round[player]) || 0
+    })
+  })
+  return sums
+})
+
+const leaders = computed(() => {
+  if (!store.activeGame || store.activeGame.rounds.length === 0) return []
+
+  const max = Math.max(...store.activeGame.players.map((player) => totals.value[player]))
+  return store.activeGame.players.filter((player) => totals.value[player] === max)
+})
+
+const formatScore = (value) => (Number.isInteger(value) ? value : value.toFixed(1))
+
 const handleEndGame = async () => {
   await store.endGame()
   await store.fetchInitialData()
@@ -73,6 +97,7 @@ const handleEndGame = async () => {
             >
             <input
               type="number"
+              inputmode="decimal"
               :id="player"
               v-model="currentRound[player]"
               required
@@ -94,43 +119,60 @@ const handleEndGame = async () => {
       </form>
     </section>
 
-    <section
-      class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 md:col-span-2 overflow-x-auto"
-    >
+    <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 md:col-span-2">
       <h2 class="text-xl font-bold text-green-700 border-b-2 border-green-700 pb-2 mb-4">
         Current Standings
       </h2>
 
-      <table class="w-full text-left border-collapse min-w-full">
-        <thead>
-          <tr class="bg-green-50 text-green-800 border-b border-green-200">
-            <th class="p-3 font-semibold">Round</th>
-            <th v-for="player in store.activeGame.players" :key="player" class="p-3 font-semibold">
-              {{ player }}
-            </th>
-          </tr>
-        </thead>
-        <tbody class="text-gray-600">
-          <tr v-if="store.activeGame.rounds.length === 0">
-            <td
-              class="p-3 text-center text-gray-400 italic"
-              :colspan="store.activeGame.players.length + 1"
+      <div class="overflow-auto max-h-[55vh]">
+        <table class="w-full text-left border-collapse min-w-full">
+          <thead>
+            <tr class="bg-green-50 text-green-800 border-b border-green-200">
+              <th class="p-3 font-semibold sticky top-0 bg-green-50 z-10">Round</th>
+              <th
+                v-for="player in store.activeGame.players"
+                :key="player"
+                class="p-3 font-semibold sticky top-0 bg-green-50 z-10 whitespace-nowrap"
+              >
+                <span v-if="leaders.includes(player)" class="mr-1" title="Currently leading">👑</span
+                >{{ player }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-600">
+            <tr v-if="store.activeGame.rounds.length === 0">
+              <td
+                class="p-3 text-center text-gray-400 italic"
+                :colspan="store.activeGame.players.length + 1"
+              >
+                No rounds played yet.
+              </td>
+            </tr>
+            <tr
+              v-for="(round, index) in store.activeGame.rounds"
+              :key="index"
+              class="border-b border-gray-100 hover:bg-gray-50"
             >
-              No rounds played yet.
-            </td>
-          </tr>
-          <tr
-            v-for="(round, index) in store.activeGame.rounds"
-            :key="index"
-            class="border-b border-gray-100 hover:bg-gray-50"
-          >
-            <td class="p-3 font-bold">{{ index + 1 }}</td>
-            <td v-for="player in store.activeGame.players" :key="player" class="p-3">
-              {{ round[player] }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              <td class="p-3 font-bold">{{ index + 1 }}</td>
+              <td v-for="player in store.activeGame.players" :key="player" class="p-3">
+                {{ round[player] }}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="bg-green-50 text-green-800 border-t-2 border-green-200">
+              <th class="p-3 font-bold sticky bottom-0 bg-green-50 z-10">Total</th>
+              <td
+                v-for="player in store.activeGame.players"
+                :key="player"
+                class="p-3 font-bold sticky bottom-0 bg-green-50 z-10"
+              >
+                {{ formatScore(totals[player]) }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
 
       <div class="mt-6 flex justify-end">
         <button
