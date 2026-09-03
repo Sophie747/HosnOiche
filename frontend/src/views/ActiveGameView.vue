@@ -168,7 +168,8 @@ const handleEndGame = async () => {
               </td>
             </tr>
             <tr
-              v-for="(round, index) in store.activeGame.rounds"
+              v-for="(round, index) in store.activeGame.rounds.reverse();
+              "
               :key="index"
               class="border-b border-gray-100 hover:bg-gray-50"
             >
