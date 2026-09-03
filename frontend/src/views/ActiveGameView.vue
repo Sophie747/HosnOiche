@@ -76,9 +76,20 @@ const leaders = computed(() => {
 
 const formatScore = (value) => (Number.isInteger(value) ? value : value.toFixed(1))
 
-const handleDeleteRound = (index) => {
-  if (!window.confirm(`Delete round ${index + 1}? This cannot be undone.`)) return
-  store.deleteRound(index)
+const displayedRounds = computed(() => {
+  if (!store.activeGame) return []
+  return [...store.activeGame.rounds].reverse()
+})
+
+const getOriginalRoundIndex = (displayIndex) => {
+  if (!store.activeGame) return displayIndex
+  return store.activeGame.rounds.length - 1 - displayIndex
+}
+
+const handleDeleteRound = (displayIndex) => {
+  const originalIndex = getOriginalRoundIndex(displayIndex)
+  if (!window.confirm(`Delete round ${originalIndex + 1}? This cannot be undone.`)) return
+  store.deleteRound(originalIndex)
 }
 
 const handleEndGame = async () => {
@@ -168,20 +179,20 @@ const handleEndGame = async () => {
               </td>
             </tr>
             <tr
-              v-for="(round, index) in store.activeGame.rounds"
-              :key="index"
+              v-for="(round, displayIndex) in displayedRounds"
+              :key="getOriginalRoundIndex(displayIndex)"
               class="border-b border-gray-100 hover:bg-gray-50"
             >
-              <td class="p-3 font-bold">{{ index + 1 }}</td>
+              <td class="p-3 font-bold">{{ getOriginalRoundIndex(displayIndex) + 1 }}</td>
               <td v-for="player in store.activeGame.players" :key="player" class="p-3">
                 {{ round[player] }}
               </td>
               <td class="p-3 text-right">
                 <button
                   type="button"
-                  @click="handleDeleteRound(index)"
-                  :aria-label="`Delete round ${index + 1}`"
-                  :title="`Delete round ${index + 1}`"
+                  @click="handleDeleteRound(displayIndex)"
+                  :aria-label="`Delete round ${getOriginalRoundIndex(displayIndex) + 1}`"
+                  :title="`Delete round ${getOriginalRoundIndex(displayIndex) + 1}`"
                   class="text-gray-300 hover:text-red-600 font-bold px-2 transition-colors"
                 >
                   ✕
