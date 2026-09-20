@@ -30,6 +30,7 @@ POSTGRES_PORT=
 Create and populate tables:
 
 ```
+cd backend
 npm run seed
 npm run migrate
 ```
