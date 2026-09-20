@@ -1,4 +1,4 @@
-# Hosn Oichi - Real-Time Score Tracker
+# Hosn Oiche - Real-Time Score Tracker
 
 A full-stack web application for tracking scores in the traditional card game "Hosn Obi". Built with Vue 3, Node.js, Express, and PostgreSQL, featuring real-time synchronization across clients using Socket.io.
 
